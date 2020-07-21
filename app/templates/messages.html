@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<h1>Messages</h1>
+{% for post in messages %}
+    {% include "_post.html" %}
+{% endfor %}
+
+{% if prev_url %}
+<a href="{{ prev_url }}">Newer messages</a>
+{% endif %}
+
+{% if next_url %}
+<a href="{{ next_url }}">Older messages</a>
+{% endif %}
+
+{% endblock %}
