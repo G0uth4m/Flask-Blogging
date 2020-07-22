@@ -46,6 +46,7 @@ class User(UserMixin, db.Model):
     )
     last_message_read_time = db.Column(db.DateTime)
     notifications = db.relationship('Notification', backref='user', lazy='dynamic')
+    subscription_token = db.Column(db.String(500), default=None)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)

@@ -1,4 +1,5 @@
-from flask import render_template, flash, redirect, url_for, request, jsonify
+from flask import render_template, flash, redirect, url_for, request, jsonify, Response
+import json
 from app import app
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, MessageForm
 from flask_login import current_user, login_user, logout_user, login_required
@@ -7,6 +8,7 @@ from werkzeug.urls import url_parse
 from app import db
 from datetime import datetime
 from app.email import send_password_reset_email
+from app.webpushnotifications import send_web_push
 
 
 @app.before_request
@@ -233,3 +235,41 @@ def view_notifications():
             'timestamp': n.timestamp
         } for n in notifications
     ])
+
+
+@app.route('/api/v1/subscription/', methods=["GET", "POST"])
+@login_required
+def subscribe():
+    if request.method == "GET":
+        return Response(
+            response=json.dumps({"public_key": app.config["VAPID_PUBLIC_KEY"]}),
+            headers={"Access-Control-Allow-Origin": "*"},
+            content_type="application/json"
+        )
+    temp = request.get_json("sub_token")
+    print(type(temp), temp)
+    if temp is None:
+        current_user.subscription_token = None
+    else:
+        current_user.subscription_token = json.dumps(temp)
+    db.session.commit()
+    return Response(status=201, mimetype="application/json")
+
+
+@app.route("/api/v1/push/", methods=['POST'])
+def push_notifications():
+    if not request.json or not request.json.get('user') or not request.json.get('message'):
+        return jsonify({'failed': 1})
+
+    username = request.json.get('user')
+    message = request.json.get('message')
+    token = User.query.filter_by(username=username).first().subscription_token
+    if token is None:
+        return jsonify({"failed": "User not subscribed for push notifications"})
+    print(token)
+    try:
+        send_web_push(json.loads(token), message)
+        return jsonify({'success': 1})
+    except Exception as e:
+        print("error", e)
+        return jsonify({'failed': str(e)})

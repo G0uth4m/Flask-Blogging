@@ -13,3 +13,6 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = ['admin@invite.com']
     POSTS_PER_PAGE = 25
+    VAPID_PRIVATE_KEY = "SOz4qDUZaEUp1PapnoK-PMSGK5zr_rfzjuFH8JLijLk"
+    VAPID_PUBLIC_KEY = "BIcdW51BZR5cUZNiQaRSch7HN87COzub8QebqeQ5j5oukcGQvG86FJI14Nq9L04UU4B7pbm1skhwAYr0Surk2Ng"
+    VAPID_CLAIMS = {"sub": "mailto:test@test.in"}
